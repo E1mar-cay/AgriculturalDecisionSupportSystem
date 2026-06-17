@@ -1,0 +1,23 @@
+# Composer dependencies
+/vendor/
+
+# Python virtual environment
+/.venv/
+
+# Redundant Python package libraries installed in root (already in .venv)
+/mlxtend/
+/mysql/
+/pandas/
+
+# IDE/Editor settings
+/.vscode/
+/.idea/
+
+# Local/System Files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+
+# Log files
+*.log
