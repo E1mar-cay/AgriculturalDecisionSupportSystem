@@ -29,11 +29,33 @@ try {
             $min_confidence = floatval($s['setting_value']);
         }
     }
+
+    // Fetch latest execution times from system logs
+    $apriori_time = 0.0;
+    $fpgrowth_time = 0.0;
+    $logStmt = $pdo->query("
+        SELECT action 
+        FROM tbl_system_logs 
+        WHERE action LIKE 'Triggered Apriori & FP-Growth%' 
+        ORDER BY id DESC 
+        LIMIT 1
+    ");
+    $latest_log = $logStmt->fetchColumn();
+    if ($latest_log) {
+        if (preg_match('/Apriori:\s*([0-9.]+)\s*ms/', $latest_log, $matches)) {
+            $apriori_time = floatval($matches[1]);
+        }
+        if (preg_match('/FP-Growth:\s*([0-9.]+)\s*ms/', $latest_log, $matches)) {
+            $fpgrowth_time = floatval($matches[1]);
+        }
+    }
 } catch (\PDOException $e) {
     error_log("Database read error in forecast_rules: " . $e->getMessage());
     $rules = [];
     $min_support = 0.10;
     $min_confidence = 0.50;
+    $apriori_time = 0.0;
+    $fpgrowth_time = 0.0;
 }
 ?>
 
@@ -93,6 +115,40 @@ try {
 
     <!-- Mined Rules Table -->
     <div class="col-lg-9">
+        <!-- Algorithm Performance Benchmark Cards -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-6">
+                <div class="card p-3 border d-flex flex-column justify-content-between <?php echo ($apriori_time > 0 && $fpgrowth_time > 0 && $apriori_time <= $fpgrowth_time) ? 'border-success-subtle bg-success-subtle bg-opacity-10' : ''; ?>" id="aprioriCard">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <span class="text-muted small fw-semibold text-uppercase mb-1" style="font-size: 0.72rem; letter-spacing: 0.5px;">Apriori Algorithm</span>
+                            <h3 class="mb-0 fw-bold mt-1 text-dark" id="aprioriTimeVal">
+                                <?php echo ($apriori_time > 0) ? number_format($apriori_time, 2) . " <span class='fs-6 fw-normal text-muted'>ms</span>" : "N/A"; ?>
+                            </h3>
+                        </div>
+                        <?php if ($apriori_time > 0 && $fpgrowth_time > 0 && $apriori_time <= $fpgrowth_time): ?>
+                            <span class="badge bg-success-subtle text-success border border-success px-2 py-1 rounded-1 font-monospace" style="font-size: 0.7rem;" id="aprioriFasterBadge">Faster</span>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card p-3 border d-flex flex-column justify-content-between <?php echo ($apriori_time > 0 && $fpgrowth_time > 0 && $fpgrowth_time < $apriori_time) ? 'border-success-subtle bg-success-subtle bg-opacity-10' : ''; ?>" id="fpgrowthCard">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <span class="text-muted small fw-semibold text-uppercase mb-1" style="font-size: 0.72rem; letter-spacing: 0.5px;">FP-Growth Algorithm</span>
+                            <h3 class="mb-0 fw-bold mt-1 text-dark" id="fpgrowthTimeVal">
+                                <?php echo ($fpgrowth_time > 0) ? number_format($fpgrowth_time, 2) . " <span class='fs-6 fw-normal text-muted'>ms</span>" : "N/A"; ?>
+                            </h3>
+                        </div>
+                        <?php if ($apriori_time > 0 && $fpgrowth_time > 0 && $fpgrowth_time < $apriori_time): ?>
+                            <span class="badge bg-success-subtle text-success border border-success px-2 py-1 rounded-1 font-monospace" style="font-size: 0.7rem;" id="fpgrowthFasterBadge">Faster</span>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="card">
             <div class="card-header">
                 <div class="d-flex align-items-center justify-content-between">
@@ -217,6 +273,13 @@ document.addEventListener("DOMContentLoaded", function () {
                     if (data.success) {
                         let aprioriTime = data.apriori_time_ms ? parseFloat(data.apriori_time_ms).toFixed(2) : 'N/A';
                         let fpgrowthTime = data.fpgrowth_time_ms ? parseFloat(data.fpgrowth_time_ms).toFixed(2) : 'N/A';
+                        
+                        // Dynamically update the UI performance cards
+                        const aprioriVal = document.getElementById('aprioriTimeVal');
+                        const fpgrowthVal = document.getElementById('fpgrowthTimeVal');
+                        if (aprioriVal) aprioriVal.innerHTML = aprioriTime !== 'N/A' ? `${aprioriTime} <span class="fs-6 fw-normal text-muted">ms</span>` : 'N/A';
+                        if (fpgrowthVal) fpgrowthVal.innerHTML = fpgrowthTime !== 'N/A' ? `${fpgrowthTime} <span class="fs-6 fw-normal text-muted">ms</span>` : 'N/A';
+                        
                         Swal.fire({
                             icon: 'success',
                             title: 'Analysis Complete',
