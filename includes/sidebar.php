@@ -41,12 +41,6 @@ $current_script = basename($_SERVER['PHP_SELF']);
                     <span>Resource Allocation</span>
                 </a>
             </li>
-            <li class="<?php echo ($current_script === 'system_logs.php') ? 'active' : ''; ?>">
-                <a href="system_logs.php">
-                    <i class="bi bi-file-earmark-text-fill"></i>
-                    <span>System Logs</span>
-                </a>
-            </li>
             <?php if ($_SESSION['role'] === 'System Admin'): ?>
             <li class="<?php echo ($current_script === 'users.php') ? 'active' : ''; ?>">
                 <a href="users.php">
@@ -58,6 +52,12 @@ $current_script = basename($_SERVER['PHP_SELF']);
                 <a href="settings.php">
                     <i class="bi bi-gear-fill"></i>
                     <span>System Settings</span>
+                </a>
+            </li>
+            <li class="<?php echo ($current_script === 'system_logs.php') ? 'active' : ''; ?>">
+                <a href="system_logs.php">
+                    <i class="bi bi-file-earmark-text-fill"></i>
+                    <span>System Logs</span>
                 </a>
             </li>
             <?php endif; ?>

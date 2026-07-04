@@ -73,6 +73,17 @@ $inserted_count = 0;
 $skipped_count = 0;
 $row_num = 0;
 
+// Default fallback indices for column mapping
+$header_map = [
+    'barangay' => 0,
+    'crop_type' => 1,
+    'farm_size' => 2,
+    'season' => 3,
+    'intervention' => 4,
+    'fertilizer_type' => 5,
+    'application_type' => 6
+];
+
 if (($handle = fopen($dest_path, 'r')) !== FALSE) {
     // Prepare the database statement once for efficiency
     $stmt = $pdo->prepare("
@@ -85,26 +96,54 @@ if (($handle = fopen($dest_path, 'r')) !== FALSE) {
 
         // Detect and skip header row
         if ($row_num === 1) {
-            $first_col_cleaned = strtolower(trim($row[0] ?? ''));
-            if ($first_col_cleaned === 'barangay' || $first_col_cleaned === 'id' || str_contains($first_col_cleaned, 'crop') || str_contains($first_col_cleaned, 'farm')) {
+            $is_header = false;
+            foreach ($row as $val) {
+                $cleaned = strtolower(trim($val));
+                if (in_array($cleaned, ['barangay', 'crop_type', 'crop', 'farm_size', 'farm_size_ha', 'season', 'intervention', 'reference_no'])) {
+                    $is_header = true;
+                    break;
+                }
+            }
+
+            if ($is_header) {
+                // Map columns dynamically based on header names
+                foreach ($row as $index => $val) {
+                    $col = strtolower(trim($val));
+                    if (str_contains($col, 'barangay')) {
+                        $header_map['barangay'] = $index;
+                    } elseif (str_contains($col, 'crop')) {
+                        $header_map['crop_type'] = $index;
+                    } elseif (str_contains($col, 'farm_size') || str_contains($col, 'size') || str_contains($col, 'area')) {
+                        $header_map['farm_size'] = $index;
+                    } elseif (str_contains($col, 'season')) {
+                        $header_map['season'] = $index;
+                    } elseif (str_contains($col, 'intervention')) {
+                        $header_map['intervention'] = $index;
+                    } elseif (str_contains($col, 'fertilizer')) {
+                        $header_map['fertilizer_type'] = $index;
+                    } elseif (str_contains($col, 'application')) {
+                        $header_map['application_type'] = $index;
+                    }
+                }
                 continue;
             }
         }
 
-        // Validate column count (needs at least 7 elements now)
-        if (count($row) < 7) {
+        // Validate column count (needs to contain all mapped header columns)
+        $max_index = max(array_values($header_map));
+        if (count($row) <= $max_index) {
             $skipped_count++;
             continue;
         }
 
-        // Extract and trim fields
-        $barangay = trim($row[0] ?? '');
-        $crop_type = trim($row[1] ?? '');
-        $farm_size_raw = trim($row[2] ?? '');
-        $season_raw = trim($row[3] ?? '');
-        $intervention = trim($row[4] ?? '');
-        $fertilizer_type = trim($row[5] ?? '');
-        $application_type = trim($row[6] ?? '');
+        // Extract and trim fields using mapped headers
+        $barangay = trim($row[$header_map['barangay']] ?? '');
+        $crop_type = trim($row[$header_map['crop_type']] ?? '');
+        $farm_size_raw = trim($row[$header_map['farm_size']] ?? '');
+        $season_raw = trim($row[$header_map['season']] ?? '');
+        $intervention = trim($row[$header_map['intervention']] ?? '');
+        $fertilizer_type = trim($row[$header_map['fertilizer_type']] ?? '');
+        $application_type = trim($row[$header_map['application_type']] ?? '');
 
         // Validation: Critical data check (none can be empty strings)
         if ($barangay === '' || $crop_type === '' || $farm_size_raw === '' || $season_raw === '' || $intervention === '' || $fertilizer_type === '' || $application_type === '') {
@@ -142,6 +181,12 @@ if (($handle = fopen($dest_path, 'r')) !== FALSE) {
         $intervention = ucwords(strtolower(preg_replace('/\s+/', ' ', $intervention)));
         $fertilizer_type = ucwords(strtolower(preg_replace('/\s+/', ' ', $fertilizer_type)));
         $application_type = ucwords(strtolower(preg_replace('/\s+/', ' ', $application_type)));
+
+        // Validation: Crop Type scope check (strictly Rice or Corn)
+        if ($crop_type !== 'Rice' && $crop_type !== 'Corn') {
+            $skipped_count++;
+            continue;
+        }
 
         // Insert into database
         try {

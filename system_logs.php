@@ -7,6 +7,22 @@ $page_title = "System Logs";
 include_once __DIR__ . '/includes/header.php';
 require_once __DIR__ . '/includes/db_connect.php';
 
+// Authorization check: only System Admin allowed
+if ($_SESSION['role'] !== 'System Admin') {
+    echo '
+    <div class="row">
+        <div class="col-12">
+            <div class="alert alert-danger py-3">
+                <i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i>
+                <span class="fw-semibold">Access Denied:</span> You do not have permission to view system activity logs.
+            </div>
+            <a href="dashboard.php" class="btn btn-primary"><i class="bi bi-house-door me-1"></i>Return to Dashboard</a>
+        </div>
+    </div>';
+    include_once __DIR__ . '/includes/footer.php';
+    exit();
+}
+
 // Setup pagination parameters
 $page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
 $limit = 15;

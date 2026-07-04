@@ -328,7 +328,10 @@ try {
                     </div>
                     <div class="mb-3">
                         <label for="add-crop" class="form-label small fw-semibold text-muted mb-1">Crop Type</label>
-                        <input type="text" name="crop_type" id="add-crop" class="form-control" required placeholder="e.g. Rice">
+                        <select name="crop_type" id="add-crop" class="form-select" required>
+                            <option value="Rice">Rice</option>
+                            <option value="Corn">Corn</option>
+                        </select>
                     </div>
                     <div class="mb-3">
                         <label for="add-size" class="form-label small fw-semibold text-muted mb-1">Farm Size (sq.m)</label>
@@ -383,7 +386,10 @@ try {
                     </div>
                     <div class="mb-3">
                         <label for="edit-crop" class="form-label small fw-semibold text-muted mb-1">Crop Type</label>
-                        <input type="text" name="crop_type" id="edit-crop" class="form-control" required>
+                        <select name="crop_type" id="edit-crop" class="form-select" required>
+                            <option value="Rice">Rice</option>
+                            <option value="Corn">Corn</option>
+                        </select>
                     </div>
                     <div class="mb-3">
                         <label for="edit-size" class="form-label small fw-semibold text-muted mb-1">Farm Size (sq.m)</label>

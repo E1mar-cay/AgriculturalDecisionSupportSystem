@@ -100,10 +100,7 @@ try {
     if (empty($crop_to_intervention)) {
         $crop_to_intervention = [
             'rice' => 'Fertilizer Distribution',
-            'corn' => 'Seed Subsidy',
-            'sugarcane' => 'Tractor Support',
-            'onion' => 'Seed Subsidy',
-            'cacao' => 'Fertilizer'
+            'corn' => 'Seed Subsidy'
         ];
     }
     
@@ -317,18 +314,6 @@ try {
                         <span class="d-inline-block me-2" style="width: 14px; height: 14px; background-color: #f59e0b; border: 1px solid #b45309; border-radius: 2px;"></span>
                         <span>Corn (Yellow)</span>
                     </div>
-                    <div class="d-flex align-items-center mb-1">
-                        <span class="d-inline-block me-2" style="width: 14px; height: 14px; background-color: #ef4444; border: 1px solid #991b1b; border-radius: 2px;"></span>
-                        <span>Onion (Red)</span>
-                    </div>
-                    <div class="d-flex align-items-center mb-1">
-                        <span class="d-inline-block me-2" style="width: 14px; height: 14px; background-color: #8b5cf6; border: 1px solid #5b21b6; border-radius: 2px;"></span>
-                        <span>Sugarcane (Purple)</span>
-                    </div>
-                    <div class="d-flex align-items-center mb-1">
-                        <span class="d-inline-block me-2" style="width: 14px; height: 14px; background-color: #78350f; border: 1px solid #451a03; border-radius: 2px;"></span>
-                        <span>Cacao (Brown)</span>
-                    </div>
                     <div class="d-flex align-items-center">
                         <span class="d-inline-block me-2" style="width: 14px; height: 14px; background-color: #94a3b8; border: 1px solid #475569; border-radius: 2px;"></span>
                         <span>Other / No Data</span>
@@ -439,8 +424,6 @@ document.addEventListener("DOMContentLoaded", function() {
                     backgroundColor: [
                         '#1b5e20', // Rice (Forest Green)
                         '#f59e0b', // Corn (Maize Gold)
-                        '#10b981', // Sugarcane (Emerald Green)
-                        '#b45309', // Cacao (Warm Soil Brown)
                         '#6b7280'  // Others (Slate Gray)
                     ],
                     borderWidth: 2,
@@ -653,9 +636,6 @@ document.addEventListener("DOMContentLoaded", function() {
             const crop = String(cropType).toLowerCase().trim();
             if (crop === 'rice') return '#2e7d32';      // Green
             if (crop === 'corn') return '#f59e0b';      // Maize Gold
-            if (crop === 'onion') return '#ef4444';     // Red/Coral
-            if (crop === 'sugarcane') return '#8b5cf6';  // Purple
-            if (crop === 'cacao') return '#78350f';     // Dark Brown
             return '#94a3b8';                           // Slate Grey
         }
 
@@ -663,9 +643,6 @@ document.addEventListener("DOMContentLoaded", function() {
             const crop = String(cropType).toLowerCase().trim();
             if (crop === 'rice') return '#1b5e20';
             if (crop === 'corn') return '#b45309';
-            if (crop === 'onion') return '#991b1b';
-            if (crop === 'sugarcane') return '#5b21b6';
-            if (crop === 'cacao') return '#451a03';
             return '#475569';
         }
 

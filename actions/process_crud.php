@@ -61,6 +61,17 @@ switch ($action) {
             exit();
         }
 
+        // Validation: Crop Type scope check (strictly Rice or Corn)
+        if ($crop_type !== 'Rice' && $crop_type !== 'Corn') {
+            $_SESSION['upload_status'] = [
+                'icon' => 'error',
+                'title' => 'Validation Error',
+                'text' => 'Crop Type must be either Rice or Corn.'
+            ];
+            header("Location: ../data_management.php");
+            exit();
+        }
+
         // Validation: Farm size positive float
         if (!is_numeric($farm_size_raw) || floatval($farm_size_raw) <= 0) {
             $_SESSION['upload_status'] = [
@@ -138,6 +149,17 @@ switch ($action) {
                 'icon' => 'error',
                 'title' => 'Validation Error',
                 'text' => 'Invalid record ID.'
+            ];
+            header("Location: ../data_management.php");
+            exit();
+        }
+
+        // Validation: Crop Type scope check (strictly Rice or Corn)
+        if ($crop_type !== 'Rice' && $crop_type !== 'Corn') {
+            $_SESSION['upload_status'] = [
+                'icon' => 'error',
+                'title' => 'Validation Error',
+                'text' => 'Crop Type must be either Rice or Corn.'
             ];
             header("Location: ../data_management.php");
             exit();
