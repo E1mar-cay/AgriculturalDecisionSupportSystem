@@ -50,7 +50,9 @@ CREATE TABLE `tbl_rsbsa_data` (
   `farm_size` decimal(10,2) NOT NULL,
   `season` enum('Wet Season','Dry Season') NOT NULL,
   `intervention_received` varchar(150) NOT NULL,
-  `date_uploaded` timestamp NOT NULL DEFAULT current_timestamp()
+  `date_uploaded` timestamp NOT NULL DEFAULT current_timestamp(),
+  `fertilizer_type` varchar(100) DEFAULT NULL,
+  `application_type` varchar(100) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
