@@ -31,7 +31,7 @@ $where_clauses = [];
 $params = [];
 
 if ($search !== '') {
-    $where_clauses[] = "(barangay LIKE :search OR crop_type LIKE :search OR intervention_received LIKE :search)";
+    $where_clauses[] = "(barangay LIKE :search OR crop_type LIKE :search OR intervention_received LIKE :search OR fertilizer_type LIKE :search OR application_type LIKE :search)";
     $params['search'] = "%$search%";
 }
 if ($brgy_filter !== '') {
@@ -71,7 +71,7 @@ if ($offset < 0) $offset = 0;
 // Fetch filtered records for the current page
 try {
     $data_sql = "
-        SELECT id, barangay, crop_type, farm_size, season, intervention_received 
+        SELECT id, barangay, crop_type, farm_size, season, intervention_received, fertilizer_type, application_type 
         FROM tbl_rsbsa_data 
         $where_sql 
         ORDER BY id DESC 
@@ -205,13 +205,15 @@ try {
                                 <th>Farm Size (sq.m)</th>
                                 <th>Season</th>
                                 <th>Intervention</th>
+                                <th>Fertilizer Type</th>
+                                <th>Application Type</th>
                                 <th class="text-end px-3">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php if (empty($records)): ?>
                                 <tr>
-                                    <td colspan="7" class="text-center text-muted py-5">
+                                    <td colspan="9" class="text-center text-muted py-5">
                                         <i class="bi bi-inbox d-block fs-3 mb-2"></i>
                                         No matching records found in the database.
                                     </td>
@@ -233,6 +235,8 @@ try {
                                         <td class="text-truncate" style="max-width: 150px;" title="<?php echo htmlspecialchars($rec['intervention_received']); ?>">
                                             <?php echo htmlspecialchars($rec['intervention_received']); ?>
                                         </td>
+                                        <td><?php echo htmlspecialchars($rec['fertilizer_type'] ?? 'N/A'); ?></td>
+                                        <td><?php echo htmlspecialchars($rec['application_type'] ?? 'N/A'); ?></td>
                                         <td class="text-end px-3">
                                             <div class="btn-group btn-group-sm">
                                                 <button type="button" class="btn btn-outline-secondary" 
@@ -243,6 +247,8 @@ try {
                                                         data-size="<?php echo htmlspecialchars($rec['farm_size']); ?>"
                                                         data-season="<?php echo htmlspecialchars($rec['season']); ?>"
                                                         data-intervention="<?php echo htmlspecialchars($rec['intervention_received']); ?>"
+                                                        data-fertilizer="<?php echo htmlspecialchars($rec['fertilizer_type'] ?? ''); ?>"
+                                                        data-application="<?php echo htmlspecialchars($rec['application_type'] ?? ''); ?>"
                                                         title="Edit Record">
                                                     <i class="bi bi-pencil-square"></i>
                                                 </button>
@@ -339,6 +345,14 @@ try {
                         <label for="add-intervention" class="form-label small fw-semibold text-muted mb-1">Intervention Received</label>
                         <input type="text" name="intervention_received" id="add-intervention" class="form-control" required placeholder="e.g. Fertilizer Seeds">
                     </div>
+                    <div class="mb-3">
+                        <label for="add-fertilizer" class="form-label small fw-semibold text-muted mb-1">Fertilizer Type</label>
+                        <input type="text" name="fertilizer_type" id="add-fertilizer" class="form-control" required placeholder="e.g. Chemical">
+                    </div>
+                    <div class="mb-3">
+                        <label for="add-application" class="form-label small fw-semibold text-muted mb-1">Application Type</label>
+                        <input type="text" name="application_type" id="add-application" class="form-control" required placeholder="e.g. Pellet/Granular">
+                    </div>
                 </div>
                 <div class="modal-footer border-top bg-light p-3">
                     <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -385,6 +399,14 @@ try {
                     <div class="mb-3">
                         <label for="edit-intervention" class="form-label small fw-semibold text-muted mb-1">Intervention Received</label>
                         <input type="text" name="intervention_received" id="edit-intervention" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit-fertilizer" class="form-label small fw-semibold text-muted mb-1">Fertilizer Type</label>
+                        <input type="text" name="fertilizer_type" id="edit-fertilizer" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit-application" class="form-label small fw-semibold text-muted mb-1">Application Type</label>
+                        <input type="text" name="application_type" id="edit-application" class="form-control" required>
                     </div>
                 </div>
                 <div class="modal-footer border-top bg-light p-3">
@@ -457,6 +479,8 @@ document.addEventListener("DOMContentLoaded", function () {
             const size = button.getAttribute('data-size');
             const season = button.getAttribute('data-season');
             const intervention = button.getAttribute('data-intervention');
+            const fertilizer = button.getAttribute('data-fertilizer');
+            const application = button.getAttribute('data-application');
 
             editModal.querySelector('#edit-id').value = id;
             editModal.querySelector('#edit-barangay').value = barangay;
@@ -464,6 +488,8 @@ document.addEventListener("DOMContentLoaded", function () {
             editModal.querySelector('#edit-size').value = size;
             editModal.querySelector('#edit-season').value = season;
             editModal.querySelector('#edit-intervention').value = intervention;
+            editModal.querySelector('#edit-fertilizer').value = fertilizer;
+            editModal.querySelector('#edit-application').value = application;
         });
     }
 

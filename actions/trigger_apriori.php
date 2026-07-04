@@ -43,36 +43,64 @@ try {
     $python_script = 'c:\\xampp\\htdocs\\agricultural_dss\\python_engine\\apriori_engine.py';
 
     // Construct command, escaping arguments properly
-    $command = '"' . $python_exec . '" "' . $python_script . '" ' . escapeshellarg($support) . ' ' . escapeshellarg($confidence) . ' 2>&1';
+    $command = '"' . $python_exec . '" "' . $python_script . '" ' . escapeshellarg($support) . ' ' . escapeshellarg($confidence);
     
-    // Execute command and capture output
-    $output = shell_exec($command);
+    $descriptorspec = array(
+       0 => array("pipe", "r"),  // stdin
+       1 => array("pipe", "w"),  // stdout
+       2 => array("pipe", "w")   // stderr
+    );
+    
+    $process = proc_open($command, $descriptorspec, $pipes);
+    
+    $stdout = '';
+    $stderr = '';
+    
+    if (is_resource($process)) {
+        $stdout = stream_get_contents($pipes[1]);
+        fclose($pipes[1]);
+        
+        $stderr = stream_get_contents($pipes[2]);
+        fclose($pipes[2]);
+        
+        $return_value = proc_close($process);
+    } else {
+        $return_value = -1;
+    }
+    
+    // Parse output
+    $data = json_decode($stdout, true);
     
     // Check if script ran successfully
-    if ($output !== null && str_contains($output, 'Success!')) {
+    if ($return_value === 0 && $data !== null && isset($data['rules'])) {
         // Log to audit trail
         $logStmt = $pdo->prepare("INSERT INTO tbl_system_logs (user_id, action) VALUES (:user_id, :action)");
         $logStmt->execute([
             'user_id' => $_SESSION['user_id'],
-            'action' => "Triggered Apriori algorithm from UI using Support = " . ($support * 100) . "%, Confidence = " . ($confidence * 100) . "%."
+            'action' => "Triggered Apriori & FP-Growth algorithms from UI using Support = " . ($support * 100) . "%, Confidence = " . ($confidence * 100) . "%. Apriori: " . number_format($data['apriori_time_ms'], 2) . "ms, FP-Growth: " . number_format($data['fpgrowth_time_ms'], 2) . "ms."
         ]);
 
         echo json_encode([
             'success' => true,
-            'message' => 'Association rules successfully recalculated and updated using settings parameters.'
+            'message' => 'Association rules successfully recalculated and updated using settings parameters.',
+            'rules' => $data['rules'],
+            'apriori_time_ms' => $data['apriori_time_ms'],
+            'fpgrowth_time_ms' => $data['fpgrowth_time_ms']
         ]);
     } else {
-        error_log("Apriori triggering failed. Output: " . ($output ?? 'No output'));
+        error_log("Apriori/FP-Growth triggering failed. Exit Code: " . $return_value . ". Stderr: " . $stderr . ". Stdout: " . $stdout);
         
         // Return clear error detail
-        $err_msg = 'Apriori ran but did not generate any rules. Check if the dataset is too small or if system settings thresholds are set too high.';
-        if ($output && str_contains($output, 'Database Connection Error')) {
+        $err_msg = 'Apriori/FP-Growth ran but did not generate any rules. Check if the dataset is too small or if system settings thresholds are set too high.';
+        if (str_contains($stderr, 'Database Connection Error') || str_contains($stdout, 'Database Connection Error')) {
             $err_msg = 'Failed to connect to database in Python engine.';
         }
         
         echo json_encode([
             'success' => false,
-            'message' => $err_msg
+            'message' => $err_msg,
+            'stderr' => $stderr,
+            'stdout' => $stdout
         ]);
     }
 } catch (\Exception $e) {

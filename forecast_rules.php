@@ -136,6 +136,10 @@ try {
                                                     $clean_item = 'Season: ' . substr($item, strlen('season:'));
                                                 } elseif (str_starts_with($item, 'intervention_received:')) {
                                                     $clean_item = 'Intervention: ' . substr($item, strlen('intervention_received:'));
+                                                } elseif (str_starts_with($item, 'fertilizer_type:')) {
+                                                    $clean_item = 'Fertilizer: ' . substr($item, strlen('fertilizer_type:'));
+                                                } elseif (str_starts_with($item, 'application_type:')) {
+                                                    $clean_item = 'Application: ' . substr($item, strlen('application_type:'));
                                                 }
                                                 echo '<span class="badge bg-light text-dark border me-1 my-1 px-2.5 py-1.5 font-monospace">' . htmlspecialchars($clean_item) . '</span>';
                                             }
@@ -155,6 +159,10 @@ try {
                                                     $clean_item = 'Season: ' . substr($item, strlen('season:'));
                                                 } elseif (str_starts_with($item, 'intervention_received:')) {
                                                     $clean_item = 'Intervention: ' . substr($item, strlen('intervention_received:'));
+                                                } elseif (str_starts_with($item, 'fertilizer_type:')) {
+                                                    $clean_item = 'Fertilizer: ' . substr($item, strlen('fertilizer_type:'));
+                                                } elseif (str_starts_with($item, 'application_type:')) {
+                                                    $clean_item = 'Application: ' . substr($item, strlen('application_type:'));
                                                 }
                                                 echo '<span class="badge bg-success-subtle text-success border border-success me-1 my-1 px-2.5 py-1.5 font-monospace">' . htmlspecialchars($clean_item) . '</span>';
                                             }
@@ -207,10 +215,20 @@ document.addEventListener("DOMContentLoaded", function () {
                 })
                 .then(data => {
                     if (data.success) {
+                        let aprioriTime = data.apriori_time_ms ? parseFloat(data.apriori_time_ms).toFixed(2) : 'N/A';
+                        let fpgrowthTime = data.fpgrowth_time_ms ? parseFloat(data.fpgrowth_time_ms).toFixed(2) : 'N/A';
                         Swal.fire({
                             icon: 'success',
                             title: 'Analysis Complete',
-                            text: data.message,
+                            html: `<div class="text-start">` +
+                                  `<p>${data.message}</p>` +
+                                  `<hr>` +
+                                  `<p class="mb-1"><strong>Execution Benchmarks:</strong></p>` +
+                                  `<ul class="list-unstyled font-monospace small mb-0">` +
+                                  `<li>⚡ Apriori Engine: ${aprioriTime} ms</li>` +
+                                  `<li>⚡ FP-Growth Engine: ${fpgrowthTime} ms</li>` +
+                                  `</ul>` +
+                                  `</div>`,
                             confirmButtonColor: '#1b5e20'
                         }).then(() => {
                             // Reload page to display new rules

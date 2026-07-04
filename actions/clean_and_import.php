@@ -76,8 +76,8 @@ $row_num = 0;
 if (($handle = fopen($dest_path, 'r')) !== FALSE) {
     // Prepare the database statement once for efficiency
     $stmt = $pdo->prepare("
-        INSERT INTO tbl_rsbsa_data (barangay, crop_type, farm_size, season, intervention_received) 
-        VALUES (:barangay, :crop_type, :farm_size, :season, :intervention_received)
+        INSERT INTO tbl_rsbsa_data (barangay, crop_type, farm_size, season, intervention_received, fertilizer_type, application_type) 
+        VALUES (:barangay, :crop_type, :farm_size, :season, :intervention_received, :fertilizer_type, :application_type)
     ");
 
     while (($row = fgetcsv($handle, 1000, ',')) !== FALSE) {
@@ -91,8 +91,8 @@ if (($handle = fopen($dest_path, 'r')) !== FALSE) {
             }
         }
 
-        // Validate column count (needs at least 5 elements)
-        if (count($row) < 5) {
+        // Validate column count (needs at least 7 elements now)
+        if (count($row) < 7) {
             $skipped_count++;
             continue;
         }
@@ -103,9 +103,11 @@ if (($handle = fopen($dest_path, 'r')) !== FALSE) {
         $farm_size_raw = trim($row[2] ?? '');
         $season_raw = trim($row[3] ?? '');
         $intervention = trim($row[4] ?? '');
+        $fertilizer_type = trim($row[5] ?? '');
+        $application_type = trim($row[6] ?? '');
 
         // Validation: Critical data check (none can be empty strings)
-        if ($barangay === '' || $crop_type === '' || $farm_size_raw === '' || $season_raw === '' || $intervention === '') {
+        if ($barangay === '' || $crop_type === '' || $farm_size_raw === '' || $season_raw === '' || $intervention === '' || $fertilizer_type === '' || $application_type === '') {
             $skipped_count++;
             continue;
         }
@@ -138,6 +140,8 @@ if (($handle = fopen($dest_path, 'r')) !== FALSE) {
         $barangay = ucwords(strtolower(preg_replace('/\s+/', ' ', $barangay)));
         $crop_type = ucwords(strtolower(preg_replace('/\s+/', ' ', $crop_type)));
         $intervention = ucwords(strtolower(preg_replace('/\s+/', ' ', $intervention)));
+        $fertilizer_type = ucwords(strtolower(preg_replace('/\s+/', ' ', $fertilizer_type)));
+        $application_type = ucwords(strtolower(preg_replace('/\s+/', ' ', $application_type)));
 
         // Insert into database
         try {
@@ -146,7 +150,9 @@ if (($handle = fopen($dest_path, 'r')) !== FALSE) {
                 'crop_type' => $crop_type,
                 'farm_size' => $farm_size,
                 'season' => $season,
-                'intervention_received' => $intervention
+                'intervention_received' => $intervention,
+                'fertilizer_type' => $fertilizer_type,
+                'application_type' => $application_type
             ]);
             $inserted_count++;
         } catch (\PDOException $e) {

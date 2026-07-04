@@ -47,9 +47,11 @@ switch ($action) {
         $farm_size_raw = trim($_POST['farm_size'] ?? '');
         $season = trim($_POST['season'] ?? '');
         $intervention = ucwords(strtolower(preg_replace('/\s+/', ' ', trim($_POST['intervention_received'] ?? ''))));
+        $fertilizer_type = ucwords(strtolower(preg_replace('/\s+/', ' ', trim($_POST['fertilizer_type'] ?? ''))));
+        $application_type = ucwords(strtolower(preg_replace('/\s+/', ' ', trim($_POST['application_type'] ?? ''))));
 
         // Validation: Ensure no fields are empty
-        if ($barangay === '' || $crop_type === '' || $farm_size_raw === '' || $season === '' || $intervention === '') {
+        if ($barangay === '' || $crop_type === '' || $farm_size_raw === '' || $season === '' || $intervention === '' || $fertilizer_type === '' || $application_type === '') {
             $_SESSION['upload_status'] = [
                 'icon' => 'error',
                 'title' => 'Validation Error',
@@ -84,15 +86,17 @@ switch ($action) {
 
         try {
             $stmt = $pdo->prepare("
-                INSERT INTO tbl_rsbsa_data (barangay, crop_type, farm_size, season, intervention_received) 
-                VALUES (:barangay, :crop_type, :farm_size, :season, :intervention_received)
+                INSERT INTO tbl_rsbsa_data (barangay, crop_type, farm_size, season, intervention_received, fertilizer_type, application_type) 
+                VALUES (:barangay, :crop_type, :farm_size, :season, :intervention_received, :fertilizer_type, :application_type)
             ");
             $stmt->execute([
                 'barangay' => $barangay,
                 'crop_type' => $crop_type,
                 'farm_size' => $farm_size,
                 'season' => $season,
-                'intervention_received' => $intervention
+                'intervention_received' => $intervention,
+                'fertilizer_type' => $fertilizer_type,
+                'application_type' => $application_type
             ]);
             $new_id = $pdo->lastInsertId();
 
@@ -100,7 +104,7 @@ switch ($action) {
             $logStmt = $pdo->prepare("INSERT INTO tbl_system_logs (user_id, action) VALUES (:user_id, :action)");
             $logStmt->execute([
                 'user_id' => $_SESSION['user_id'],
-                'action' => "Created RSBSA record ID {$new_id} - Barangay: {$barangay}, Crop: {$crop_type}, Size: {$farm_size} sq.m."
+                'action' => "Created RSBSA record ID {$new_id} - Barangay: {$barangay}, Crop: {$crop_type}, Size: {$farm_size} sq.m, Fertilizer: {$fertilizer_type}, Application: {$application_type}."
             ]);
 
             $_SESSION['upload_status'] = [
@@ -126,6 +130,8 @@ switch ($action) {
         $farm_size_raw = trim($_POST['farm_size'] ?? '');
         $season = trim($_POST['season'] ?? '');
         $intervention = ucwords(strtolower(preg_replace('/\s+/', ' ', trim($_POST['intervention_received'] ?? ''))));
+        $fertilizer_type = ucwords(strtolower(preg_replace('/\s+/', ' ', trim($_POST['fertilizer_type'] ?? ''))));
+        $application_type = ucwords(strtolower(preg_replace('/\s+/', ' ', trim($_POST['application_type'] ?? ''))));
 
         if ($id <= 0) {
             $_SESSION['upload_status'] = [
@@ -138,7 +144,7 @@ switch ($action) {
         }
 
         // Validation: Empty check
-        if ($barangay === '' || $crop_type === '' || $farm_size_raw === '' || $season === '' || $intervention === '') {
+        if ($barangay === '' || $crop_type === '' || $farm_size_raw === '' || $season === '' || $intervention === '' || $fertilizer_type === '' || $application_type === '') {
             $_SESSION['upload_status'] = [
                 'icon' => 'error',
                 'title' => 'Validation Error',
@@ -190,7 +196,7 @@ switch ($action) {
             // Perform Update
             $updateStmt = $pdo->prepare("
                 UPDATE tbl_rsbsa_data 
-                SET barangay = :barangay, crop_type = :crop_type, farm_size = :farm_size, season = :season, intervention_received = :intervention 
+                SET barangay = :barangay, crop_type = :crop_type, farm_size = :farm_size, season = :season, intervention_received = :intervention, fertilizer_type = :fertilizer_type, application_type = :application_type 
                 WHERE id = :id
             ");
             $updateStmt->execute([
@@ -199,6 +205,8 @@ switch ($action) {
                 'farm_size' => $farm_size,
                 'season' => $season,
                 'intervention' => $intervention,
+                'fertilizer_type' => $fertilizer_type,
+                'application_type' => $application_type,
                 'id' => $id
             ]);
 
@@ -209,6 +217,8 @@ switch ($action) {
             if (floatval($old['farm_size']) !== floatval($farm_size)) $changes[] = "Size: {$old['farm_size']} -> {$farm_size}";
             if ($old['season'] !== $season) $changes[] = "Season: {$old['season']} -> {$season}";
             if ($old['intervention_received'] !== $intervention) $changes[] = "Intervention: {$old['intervention_received']} -> {$intervention}";
+            if (($old['fertilizer_type'] ?? '') !== $fertilizer_type) $changes[] = "Fertilizer: " . ($old['fertilizer_type'] ?? 'None') . " -> {$fertilizer_type}";
+            if (($old['application_type'] ?? '') !== $application_type) $changes[] = "Application: " . ($old['application_type'] ?? 'None') . " -> {$application_type}";
 
             $change_desc = empty($changes) ? "No fields changed" : implode(', ', $changes);
 
